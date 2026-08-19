@@ -1,0 +1,1226 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 面试评估助手</title>
+<style>
+:root {
+  --brand: #4f46e5;
+  --brand-soft: #eef2ff;
+  --brand-dark: #3730a3;
+  --success: #059669;
+  --warn: #d97706;
+  --danger: #dc2626;
+  --bg: #f8fafc;
+  --card: #fff;
+  --border: #e2e8f0;
+  --text: #1e293b;
+  --muted: #94a3b8;
+  --radius: 14px;
+  --radius-sm: 8px;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.04);
+  --shadow: 0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{
+  font-family: -apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* === TOP BAR === */
+.topbar{
+  background:#fff;border-bottom:1px solid var(--border);
+  padding:0 28px;height:56px;display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:50;
+}
+.topbar .logo{font-size:17px;font-weight:700;color:var(--brand);letter-spacing:-.3px;}
+.topbar .logo span{font-weight:400;color:var(--muted);font-size:13px;margin-left:8px;}
+.topbar-actions{display:flex;gap:8px;}
+.btn-ghost{
+  background:none;border:1px solid var(--border);color:var(--muted);
+  padding:6px 14px;border-radius:8px;font-size:13px;cursor:pointer;transition:all .15s;
+  font-family:inherit;
+}
+.btn-ghost:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-soft);}
+
+/* === TABS === */
+.tabs-bar{
+  display:flex;gap:0;padding:0 28px;background:#fff;border-bottom:1px solid var(--border);overflow-x:auto;
+}
+.tab-item{
+  padding:14px 22px;font-size:14px;font-weight:500;color:var(--muted);
+  cursor:pointer;border-bottom:2.5px solid transparent;white-space:nowrap;
+  transition:all .15s;position:relative;top:1px;
+}
+.tab-item:hover{color:var(--text);}
+.tab-item.active{color:var(--brand);border-bottom-color:var(--brand);font-weight:600;}
+
+/* === MAIN === */
+.main{max-width:900px;margin:0 auto;padding:28px 24px 80px;}
+.panel{display:none;}
+.panel.active{display:block;}
+
+/* === CARD === */
+.card{
+  background:var(--card);border:1px solid var(--border);
+  border-radius:var(--radius);padding:28px;margin-bottom:20px;
+  box-shadow:var(--shadow-sm);
+}
+.card-sm{padding:20px 24px;}
+.card-title{font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px;}
+.card-desc{font-size:13px;color:var(--muted);margin-bottom:20px;line-height:1.5;}
+
+/* === PLACEHOLDER BADGE === */
+.empty-state{
+  text-align:center;padding:40px 20px;color:var(--muted);
+}
+.empty-state .icon{font-size:36px;margin-bottom:8px;}
+.empty-state p{font-size:14px;}
+
+/* === FORM === */
+textarea,input[type="text"],input[type="date"]{
+  width:100%;padding:12px 16px;border:1px solid var(--border);
+  border-radius:var(--radius-sm);font-size:14px;color:var(--text);
+  background:#fafbfc;transition:all .15s;font-family:inherit;resize:vertical;
+  line-height:1.7;
+}
+textarea:focus,input:focus{outline:none;border-color:var(--brand);background:#fff;box-shadow:0 0 0 3px rgba(79,70,229,.08);}
+textarea{min-height:140px;}
+
+/* === BUTTONS === */
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:10px 20px;border:none;border-radius:var(--radius-sm);
+  font-size:14px;font-weight:600;cursor:pointer;transition:all .15s;font-family:inherit;
+  letter-spacing:-.1px;
+}
+.btn-primary{background:var(--brand);color:#fff;}
+.btn-primary:hover{background:var(--brand-dark);transform:translateY(-1px);box-shadow:0 4px 12px rgba(79,70,229,.25);}
+.btn-outline{background:#fff;color:var(--brand);border:1.5px solid var(--brand);}
+.btn-outline:hover{background:var(--brand-soft);}
+.btn-soft{background:var(--brand-soft);color:var(--brand);}
+.btn-soft:hover{background:#dde2ff;}
+.btn-success{background:var(--success);color:#fff;}
+.btn-success:hover{opacity:.9;}
+.btn-sm{padding:6px 14px;font-size:13px;border-radius:6px;}
+.btn-upload{
+  display:inline-flex;align-items:center;gap:6px;padding:10px 16px;
+  border:2px dashed var(--border);border-radius:var(--radius-sm);
+  font-size:13px;color:var(--muted);cursor:pointer;transition:all .15s;
+  font-family:inherit;background:#fafbfc;
+}
+.btn-upload:hover{border-color:var(--brand);color:var(--brand);background:var(--brand-soft);}
+
+/* === TAG === */
+.tag{
+  display:inline-flex;align-items:center;gap:4px;
+  padding:4px 12px;border-radius:20px;font-size:12.5px;font-weight:600;
+}
+.tag-blue{background:#eef2ff;color:var(--brand);}
+.tag-green{background:#ecfdf5;color:var(--success);}
+.tag-amber{background:#fffbeb;color:var(--warn);}
+.tag-red{background:#fef2f2;color:var(--danger);}
+.tag-gray{background:#f1f5f9;color:#64748b;}
+
+/* === DIMENSION LIST === */
+.dim-list{display:flex;flex-direction:column;gap:10px;}
+.dim-row{
+  display:flex;align-items:center;gap:16px;padding:14px 18px;
+  background:#f8fafc;border:1px solid var(--border);border-radius:var(--radius-sm);
+}
+.dim-row .dim-name{font-weight:600;font-size:14px;min-width:120px;color:var(--text);}
+.dim-row .dim-questions{font-size:13px;color:#64748b;flex:1;line-height:1.7;}
+
+/* === DIM EDIT === */
+.dim-edit-name{border:1px solid transparent;background:transparent;font-weight:600;font-size:14px;color:var(--text);border-radius:6px;padding:4px 8px;min-width:120px;font-family:inherit;}
+.dim-edit-name:hover{border-color:var(--border);}
+.dim-edit-name:focus{outline:none;border-color:var(--brand);background:#fff;}
+.dim-weight{width:54px;border:1px solid var(--border);border-radius:6px;padding:3px 6px;font-size:12px;font-family:inherit;text-align:center;}
+.q-chip{display:inline-block;background:#f1f5f9;color:#475569;font-size:12px;padding:3px 10px;border-radius:12px;margin:0 6px 6px 0;}
+.q-add{background:none;border:1px dashed var(--border);color:var(--brand);font-size:12px;padding:3px 10px;border-radius:12px;cursor:pointer;font-family:inherit;}
+.q-add:hover{background:var(--brand-soft);border-color:var(--brand);}
+.drag-over{border-color:var(--brand)!important;background:var(--brand-soft)!important;}
+
+/* === SCORE HERO === */
+.score-hero{
+  display:flex;align-items:center;gap:24px;padding:24px 28px;
+  background:linear-gradient(135deg,#eef2ff 0%,#f5f3ff 100%);
+  border-radius:var(--radius);margin-bottom:20px;
+}
+.score-hero .big-num{font-size:64px;font-weight:800;color:var(--brand);line-height:1;}
+.score-hero .big-meta{font-size:13px;color:var(--muted);margin-top:4px;}
+
+/* === PROFILE ROW === */
+.profile-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;}
+
+/* === SCORE BARS === */
+.score-row{display:flex;align-items:center;gap:14px;padding:10px 0;}
+.score-row .s-name{font-size:13px;font-weight:600;color:var(--text);width:100px;text-align:right;}
+.score-row .s-track{flex:1;height:8px;background:#f1f5f9;border-radius:4px;overflow:hidden;}
+.score-row .s-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.score-row .s-num{font-size:14px;font-weight:700;width:36px;text-align:right;}
+.score-row .s-reason{font-size:11px;color:var(--muted);width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* === COMPARE TABLE === */
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{background:#f8fafc;padding:10px 14px;text-align:left;font-weight:700;color:#64748b;border-bottom:2px solid var(--border);font-size:12.5px;text-transform:uppercase;letter-spacing:.3px;}
+td{padding:12px 14px;border-bottom:1px solid var(--border);}
+tr:hover td{background:#fafbff;}
+.rank-dot{width:10px;height:10px;border-radius:50%;display:inline-block;}
+.cand-cell{font-weight:600;font-size:14px;}
+.score-big{font-size:22px;font-weight:800;}
+
+/* === RECOMMEND === */
+.rec-badge{
+  display:inline-block;padding:4px 12px;border-radius:12px;font-size:12px;font-weight:700;
+}
+.rec-strong{background:#ecfdf5;color:var(--success);}
+.rec-rec{background:#eef2ff;color:var(--brand);}
+.rec-backup{background:#fffbeb;color:var(--warn);}
+.rec-no{background:#fef2f2;color:var(--danger);}
+
+/* === REPORT === */
+.report-block{padding:20px 0;border-bottom:1px solid var(--border);}
+.report-block:last-child{border-bottom:none;}
+.report-block h4{font-size:15px;font-weight:700;margin-bottom:10px;color:var(--text);}
+.report-block ul{padding-left:20px;}
+.report-block li{font-size:14px;color:#475569;line-height:2;}
+
+/* === TOAST === */
+.toast{
+  position:fixed;top:76px;right:28px;background:#1e293b;color:#fff;
+  padding:12px 20px;border-radius:10px;font-size:13.5px;z-index:999;
+  transform:translateX(120%);transition:transform .25s ease;
+  box-shadow:0 8px 24px rgba(0,0,0,.15);
+}
+.toast.show{transform:translateX(0);}
+
+/* === MODAL === */
+.modal-mask{position:fixed;inset:0;background:rgba(15,23,42,.45);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px;}
+.modal{background:#fff;border-radius:16px;max-width:540px;width:100%;padding:24px 26px;box-shadow:0 20px 60px rgba(0,0,0,.25);max-height:90vh;overflow:auto;}
+.modal-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;}
+.form-row{margin:16px 0;}
+.form-row>label{display:block;font-size:13px;font-weight:600;color:#64748b;margin-bottom:6px;}
+.radio{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--text);cursor:pointer;font-weight:500;}
+.radio input{accent-color:var(--brand);}
+.modal input[type="text"],.modal input[type="password"]{background:#fff;}
+.mode-pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:700;}
+
+/* === MOBILE === */
+@media(max-width:640px){
+  .main{padding:16px 14px 60px;}
+  .tabs-bar{padding:0 14px;}
+  .tab-item{padding:12px 14px;font-size:13px;}
+  .card{padding:20px;}
+  .score-hero{flex-direction:column;text-align:center;}
+  .score-hero .big-num{font-size:48px;}
+  .score-row .s-name{width:64px;}
+  .score-row .s-reason{display:none;}
+}
+
+/* === PRINT: 仅打印评估报告 === */
+@media print{
+  body *{visibility:hidden;}
+  #reportCard,#reportCard *{visibility:visible;}
+  #reportCard{display:block!important;position:absolute;left:0;top:0;width:100%;border:none;box-shadow:none;padding:0;margin:0;}
+  .report-block:last-child{border-bottom:none;}
+}
+</style>
+<script src="https://cdn.jsdelivr.net/npm/mammoth@1.8.0/mammoth.browser.min.js"></script>
+</head>
+<body>
+
+<!-- ====== TOPBAR ====== -->
+<header class="topbar">
+  <div class="logo">🎯 AI 面试评估助手<span>让每份简历都被认真对待</span></div>
+  <div class="topbar-actions">
+    <button class="btn-ghost" id="modeBtn" onclick="openSettings()">⚙ AI：离线</button>
+    <button class="btn-ghost" onclick="demoFlow()">⚡ 一键演示</button>
+    <button class="btn-ghost" onclick="exportAll()">导出全部</button>
+    <button class="btn-ghost" onclick="confirmClearAll()">清空数据</button>
+  </div>
+</header>
+
+<!-- ====== TABS ====== -->
+<nav class="tabs-bar">
+  <div class="tab-item active" data-tab="0" onclick="switchTab(0)">📋 岗位模型</div>
+  <div class="tab-item" data-tab="1" onclick="switchTab(1)">📄 简历评分</div>
+  <div class="tab-item" data-tab="2" onclick="switchTab(2)">✍️ 面试记录</div>
+  <div class="tab-item" data-tab="3" onclick="switchTab(3)">📊 候选人对比</div>
+</nav>
+
+<!-- ====== PANELS ====== -->
+<main class="main">
+
+  <!-- ====== 0: JD → MODEL ====== -->
+  <div class="panel active" id="p0">
+    <div class="card">
+      <div class="card-title">输入职位描述</div>
+      <div class="card-desc">粘贴 JD 文本或上传 Word 文档，AI 会自动提取评估维度与面试问题</div>
+      <textarea id="jdArea" rows="8" placeholder="在这里粘贴职位描述..."></textarea>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-primary" onclick="genModel()">生成评估模型</button>
+        <button type="button" class="btn-upload" onclick="document.getElementById('jdFileInput').click()">📎 上传 JD</button>
+        <input type="file" id="jdFileInput" accept=".txt,.docx,.md" style="position:absolute;width:1px;height:1px;opacity:0;left:-9999px;" onchange="uploadJDFile(event)">
+        <button class="btn btn-soft btn-sm" onclick="loadDemoJD()">试试示例</button>
+      </div>
+    </div>
+    <div class="card" id="modelCard" style="display:none;">
+      <div class="card-title">评估维度（可调整）</div>
+      <div class="card-desc">AI 分析 JD 后生成的评估维度，点击名称/权重可直接编辑，可删除或新增维度</div>
+      <div class="dim-list" id="dimList"></div>
+      <button class="btn btn-soft btn-sm" style="margin-top:14px;" onclick="addDimension()">＋ 添加维度</button>
+    </div>
+  </div>
+
+  <!-- ====== 1: RESUME SCORING ====== -->
+  <div class="panel" id="p1">
+    <div class="card">
+      <div class="card-title">上传简历或粘贴内容</div>
+      <div class="card-desc">支持 .docx / .txt 格式，可一次选择多份简历，每份独立评分。也可直接把文件拖入下方文本框</div>
+      <textarea id="cvArea" rows="10" placeholder="粘贴简历全文，或点击下方按钮上传文件..."></textarea>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+        <button class="btn btn-primary" id="btnScore" onclick="scoreResume()">智能评分</button>
+        <button class="btn btn-success" id="btnBatch" style="display:none" onclick="batchScoreAll()">🚀 批量评分</button>
+        <button type="button" class="btn-upload" onclick="document.getElementById('cvFileInput').click()">📎 上传简历（可多选）</button>
+        <input type="file" id="cvFileInput" accept=".txt,.docx,.md,.pdf" multiple style="position:absolute;width:1px;height:1px;opacity:0;left:-9999px;" onchange="uploadCvFiles(event)">
+        <button class="btn btn-soft btn-sm" onclick="loadDemoCV()">试试示例</button>
+      </div>
+    </div>
+    <!-- 批量简历列表：多文件时显示每份简历的独立卡片 -->
+    <div id="batchList" style="display:none;"></div>
+    <!-- 单人评分结果 -->
+    <div class="card" id="scoreCard" style="display:none;">
+      <div class="card-title">人岗匹配结果</div>
+      <div id="scoreContent"></div>
+    </div>
+    <!-- 批量评分结果汇总 -->
+    <div id="batchResultCard" style="display:none;"></div>
+  </div>
+
+  <!-- ====== 2: INTERVIEW & REPORT ====== -->
+  <div class="panel" id="p2">
+    <div class="card">
+      <div class="card-title">填写面试记录</div>
+      <div class="card-desc">录入面试中的观察和评价，生成结构化报告</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px;">
+        <div><label style="font-size:13px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">候选人姓名</label><input id="ivName" placeholder="姓名"></div>
+        <div><label style="font-size:13px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">面试日期</label><input type="date" id="ivDate"></div>
+      </div>
+      <div style="margin-bottom:16px;" id="ivScores"></div>
+      <textarea id="ivNotes" rows="5" placeholder="面试官评语..."></textarea>
+      <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap;">
+        <button class="btn btn-primary" onclick="genReport()">生成评估报告</button>
+        <button class="btn btn-soft btn-sm" onclick="autoFillScores()">从简历评分自动填充</button>
+      </div>
+    </div>
+    <div class="card" id="reportCard" style="display:none;">
+      <div class="card-title">结构化评估报告</div>
+      <div id="reportBody"></div>
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button class="btn btn-soft btn-sm" onclick="window.print()">打印</button>
+        <button class="btn btn-outline btn-sm" onclick="addReportToCompare()">加入对比</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== 3: COMPARE ====== -->
+  <div class="panel" id="p3">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;flex-wrap:wrap;">
+        <div>
+          <div class="card-title">候选人横向对比</div>
+          <div class="card-desc">已收录 <strong id="cvCount">0</strong> 位候选人，按综合得分自动排序</div>
+        </div>
+        <button class="btn btn-soft btn-sm" onclick="exportCSV()">📥 导出 CSV</button>
+      </div>
+      <div class="table-wrap"><table>
+        <thead><tr><th>排名</th><th>候选人</th><th>综合得分</th><th>各维度</th><th>建议</th><th></th></tr></thead>
+        <tbody id="cvTable"></tbody>
+      </table></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ====== AI 设置弹窗 ====== -->
+<div class="modal-mask" id="settingsMask" style="display:none;" onclick="if(event.target===this)closeSettings()">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="card-title">AI 语义分析设置</div>
+      <button class="btn-ghost btn-sm" onclick="closeSettings()">✕</button>
+    </div>
+    <div class="card-desc">开启「在线」后，<b>生成评估模型</b>与<b>简历评分</b>将调用大模型进行真实语义理解（人岗匹配质量质变）。「离线」使用关键词匹配，无需联网。</div>
+
+    <div class="form-row">
+      <label>分析模式</label>
+      <div style="display:flex;gap:18px;">
+        <label class="radio"><input type="radio" name="mode" value="offline" onchange="setMode('offline')"> 离线（关键词匹配）</label>
+        <label class="radio"><input type="radio" name="mode" value="online" onchange="setMode('online')"> 在线（AI 语义）</label>
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Chat 接口地址（OpenAI 兼容）</label>
+      <input type="text" id="cfgBase" placeholder="https://ai.zlskcn.com/api/proxy/v1/chat/completions">
+    </div>
+    <div class="form-row">
+      <label>API Key</label>
+      <input type="password" id="cfgKey" placeholder="粘贴你的 API Key（本地保存，仅用于本机请求）">
+    </div>
+    <div class="form-row">
+      <label>模型名称</label>
+      <input type="text" id="cfgModel" placeholder="qwen3.6:128k">
+    </div>
+    <div class="form-row">
+      <label class="radio" style="font-weight:500;"><input type="checkbox" id="cfgProxy" onchange="CFG.useProxy=this.checked;saveCfg()"> 通过本地代理访问（解决 CORS：需先运行 proxy.js）</label>
+    </div>
+
+    <div class="card-desc" style="margin-top:4px;background:#fffbeb;padding:10px 12px;border-radius:8px;color:#92400e;">⚠️ 简历与 JD 文本会发送至你配置的接口进行分析。请确认内容不涉密；生产环境建议走本地代理或后端转发。</div>
+
+    <div style="display:flex;gap:10px;margin-top:12px;">
+      <button class="btn btn-primary btn-sm" onclick="saveSettings()">保存设置</button>
+      <button class="btn btn-soft btn-sm" onclick="testConnection()">🔌 连接测试</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toastEl"></div>
+
+<script>
+/* =============================================
+   STATE
+============================================= */
+const S = {
+  jd:'', dims:[], candidates:[], lastScore:null, lastReport:null
+};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+const save=()=>{try{localStorage.setItem('ia_v2',JSON.stringify(S))}catch(e){}};
+const load=()=>{try{const s=JSON.parse(localStorage.getItem('ia_v2'));if(s){Object.assign(S,s);(S.candidates||[]).forEach(c=>c._id=c._id||uid());}}catch(e){}};
+
+/* =============================================
+   AI 配置（可配置：在线语义 / 离线关键词）
+============================================= */
+const CFG_KEY='ia_cfg_v1';
+let CFG={mode:'offline',baseURL:'https://ai.zlskcn.com/api/proxy/v1/chat/completions',apiKey:'your_api_key_here',model:'qwen3.6:128k',useProxy:false};
+function loadCfg(){try{const c=JSON.parse(localStorage.getItem(CFG_KEY));if(c)Object.assign(CFG,c);}catch(e){}}
+function saveCfg(){try{localStorage.setItem(CFG_KEY,JSON.stringify(CFG));}catch(e){}}
+
+/* =============================================
+   TABS / TOAST
+============================================= */
+function switchTab(i){
+  document.querySelectorAll('.tab-item').forEach((t,j)=>t.classList.toggle('active',j===i));
+  document.querySelectorAll('.panel').forEach((p,j)=>p.classList.toggle('active',j===i));
+  if(i===3)renderCompare();
+}
+function toast(m){
+  const e=document.getElementById('toastEl');e.textContent=m;e.classList.add('show');
+  clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2400);
+}
+
+/* =============================================
+   TAB 0: JD
+============================================= */
+function loadDemoJD(){
+  document.getElementById('jdArea').value=`【职位】高级前端工程师\n\n【职责】\n1. 负责核心产品前端架构设计与开发\n2. 推动前端工程化建设与性能优化\n3. 指导初中级工程师，组织技术分享\n\n【要求】\n1. 本科以上，计算机相关专业\n2. 3年以上经验，精通 React/Vue\n3. 良好的沟通能力和团队协作精神`;
+  toast('已载入示例 JD');
+}
+async function uploadJDFile(e){
+  const f=e.target.files[0];if(!f)return;
+  const area=document.getElementById('jdArea');
+  try{
+    const ext=f.name.split('.').pop().toLowerCase();
+    let t='';
+    if(ext==='txt'||ext==='md')t=await readText(f);
+    else if(ext==='docx')t=await parseDocx(f);
+    area.value=t;S.jd=t;save();toast('已解析：'+f.name);
+  }catch(err){toast('解析失败：'+err.message);}
+  e.target.value='';
+}
+
+async function genModel(){
+  const jd=document.getElementById('jdArea').value.trim();
+  if(!jd)return toast('请先输入 JD');
+  S.jd=jd;
+  if(CFG.mode==='online'&&CFG.apiKey){
+    toast('🤖 AI 正在分析 JD…');
+    try{
+      S.dims=await aiGenModel(jd);
+      renderDims();save();
+      document.getElementById('modelCard').style.display='';
+      toast(`🤖 AI 已生成 ${S.dims.length} 个评估维度`);
+      return;
+    }catch(e){ toast('AI 生成失败，回退关键词：'+e.message); }
+  }
+  S.dims=analyze(jd);renderDims();save();
+  document.getElementById('modelCard').style.display='';
+  toast(`已生成 ${S.dims.length} 个评估维度（关键词）`);
+}
+
+function renderDims(){
+  const list=document.getElementById('dimList');
+  list.innerHTML=S.dims.map((d,i)=>`
+    <div class="dim-row" style="flex-wrap:wrap;align-items:flex-start;">
+      <input class="dim-edit-name" value="${d.name.replace(/"/g,'&quot;')}" onchange="S.dims[${i}].name=this.value.trim()||'未命名';save();">
+      <div style="font-size:12px;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap;">
+        权重 <input class="dim-weight" type="number" min="0" max="100" value="${d.weight||20}" onchange="S.dims[${i}].weight=Math.max(0,parseInt(this.value)||20);save();">
+      </div>
+      <button class="btn-ghost btn-sm" style="padding:2px 8px;" onclick="S.dims.splice(${i},1);save();renderDims();toast('已删除维度')">✕</button>
+      <div class="dim-questions" style="flex-basis:100%;">
+        ${d.questions.map(q=>`<span class="q-chip">${q.replace(/</g,'&lt;')}</span>`).join('')}
+        <button class="q-add" onclick="addQuestion(${i})">＋ 添加问题</button>
+      </div>
+    </div>`).join('');
+}
+function addDimension(){
+  if(S.dims.length>=8){toast('最多 8 个维度');return;}
+  S.dims.push({name:'新维度',weight:20,questions:['请描述一段相关经历？']});
+  save();renderDims();
+}
+function addQuestion(i){
+  const q=prompt('输入一道考察问题：');
+  if(q&&q.trim()){S.dims[i].questions.push(q.trim());save();renderDims();}
+}
+
+function analyze(jd){
+  const tl=jd.toLowerCase();
+  const db=[
+    {n:'专业能力',kw:['开发','编程','代码','架构','框架','react','vue','前端','后端','java','python','node','typescript','性能','系统','工程'],q:['请介绍最有技术挑战的项目？','如何保持技术竞争力？','遇到复杂技术难题的解决思路？']},
+    {n:'沟通表达',kw:['沟通','表达','讲解','汇报','文档','交流','分享','培训'],q:['如何向非技术人员解释复杂问题？','团队讨论出现分歧时如何处理？']},
+    {n:'团队协作',kw:['团队','协作','合作','配合','跨部门','共同','协助','对齐'],q:['请分享你在团队中推动目标达成的经历？','如何帮助新同事快速融入？']},
+    {n:'学习能力',kw:['学习','研究','探索','自学','新技术','持续','成长','进修'],q:['最近自主学习了什么？','如何快速上手陌生领域？']},
+    {n:'问题解决',kw:['解决','优化','挑战','压力','紧急','排查','debug','改进'],q:['请描述解决过的最棘手的线上问题？','多个紧急问题同时出现如何排优先级？']}
+  ];
+  const scored=db.map(d=>{let s=0;d.kw.forEach(k=>{if(tl.includes(k))s++;});return{...d,_s:s};});
+  scored.sort((a,b)=>b._s-a._s);
+  return scored.slice(0,5).map(d=>({name:d.n,weight:20,questions:d.q}));
+}
+
+/* =============================================
+   TAB 1: CV SCORING
+============================================= */
+let batchFiles=[],batchScores=[];
+
+function loadDemoCV(){
+  document.getElementById('cvArea').value=`张三\n电话：138-0000-1111\n\n北京大学 计算机科学 学士 (2014-2018)\n\n字节跳动 高级前端工程师 (2021-至今)\n· 负责抖音电商核心交易链路，日PV超2000万\n· 主导前端性能优化，首屏加载时间降低42%\n· 搭建异常监控体系，实现自动告警和根因分析\n· 指导3名初级工程师，组织技术分享\n\n阿里巴巴 前端工程师 (2018-2021)\n· 参与淘宝首页重构，使用React+TypeScript\n· 开发通用组件库，被10+业务团队使用\n\n精通：React、Vue3、TypeScript、Webpack\n熟悉：Node.js、Python、MySQL`;
+  toast('已载入示例简历');
+}
+
+async function uploadCvFiles(e){
+  const files=Array.from(e.target.files);if(!files.length)return;
+  const results=[],errors=[];
+  for(const f of files){
+    try{
+      const ext=f.name.split('.').pop().toLowerCase();
+      let t='';
+      if(ext==='txt'||ext==='md')t=await readText(f);
+      else if(ext==='docx')t=await parseDocx(f);
+      else if(ext==='doc'){errors.push(f.name+' (旧.doc不支持)');continue;}
+      else if(ext==='pdf'){errors.push(f.name+' (PDF暂不支持)');continue;}
+      else t=await readText(f);
+      if(t.trim())results.push({name:f.name,text:t.trim()});
+      else errors.push(f.name+' (内容为空)');
+    }catch(err){errors.push(f.name+' (解析失败:'+err.message+')');}
+  }
+  if(!results.length){
+    toast('⚠ 全部解析失败：'+errors.join('；'));
+    e.target.value='';return;
+  }
+  if(errors.length)toast(`⚠ ${errors.length}个跳过，已加载${results.length}份`);
+
+  // 关键改变：单文件 → textarea 手动评分模式；多文件 → 独立列表 + 批量按钮
+  batchFiles=results;batchScores=[];
+
+  if(results.length===1){
+    // 单文件：和原来一样，填进 textarea，手动点"智能评分"
+    document.getElementById('cvArea').value=results[0].text;
+    document.getElementById('batchList').style.display='none';
+    document.getElementById('btnBatch').style.display='none';
+    document.getElementById('btnScore').style.display='';
+    toast(`已加载：${results[0].name}`);
+  } else {
+    // 多文件：textarea 清空，显示独立简历卡片列表
+    document.getElementById('cvArea').value='';
+    document.getElementById('cvArea').placeholder='已加载 '+results.length+' 份简历，请点击「批量评分」或点下方卡片查看单份';
+    document.getElementById('btnBatch').style.display='';
+    document.getElementById('btnScore').style.display='none';
+    renderBatchList(results);
+    toast(`已加载 ${results.length} 份简历，请点击「批量评分」`);
+  }
+  // 隐藏之前的评分结果
+  document.getElementById('scoreCard').style.display='none';
+  document.getElementById('batchResultCard').style.display='none';
+  e.target.value='';
+}
+
+/* 渲染多文件简历列表：每份简历一个独立卡片，可点击查看内容 */
+function renderBatchList(files){
+  const box=document.getElementById('batchList');
+  box.style.display='';
+  box.innerHTML=files.map((f,i)=>`
+    <div class="card" style="margin-bottom:10px;padding:14px 18px;cursor:pointer;transition:all .2s;" 
+         onclick="viewBatchItem(${i})" 
+         onmouseover="this.style.borderColor='var(--brand)'" 
+         onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--brand);font-weight:700;">${i+1}</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;color:var(--text);">${f.name.replace(/\.(docx|doc|txt|md|pdf)$/i,'')}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">${f.text.length} 字 · 点击查看内容</div>
+        </div>
+        <div style="font-size:12px;color:var(--muted);">待评分</div>
+      </div>
+    </div>`).join('');
+}
+
+/* 点击某份简历：若已批量评分则直接展示单人详情，否则把内容填进 textarea 可单独评分 */
+function viewBatchItem(idx){
+  if(!batchFiles[idx])return;
+  const f=batchFiles[idx];
+  document.getElementById('cvArea').value=f.text;
+  document.getElementById('btnScore').style.display='';
+  document.getElementById('btnBatch').style.display='none';
+  const scored=batchScores[idx];
+  if(scored){
+    S.lastScore=scored;
+    renderScore(scored);
+    document.getElementById('scoreCard').style.display='';
+    document.getElementById('batchResultCard').style.display='none';
+    toast(`已显示：${f.name} 的评分详情`);
+  } else {
+    document.getElementById('scoreCard').style.display='none';
+    toast(`已载入：${f.name}，可点击「智能评分」单独评分`);
+  }
+}
+
+function readText(f){return new Promise((ok,er)=>{const r=new FileReader();r.onload=e=>ok(e.target.result);r.onerror=er;r.readAsText(f);});}
+
+/* ─── 智能评分 ─── */
+async function scoreResume(){
+  const cv=document.getElementById('cvArea').value.trim();
+  if(!cv)return toast('请先输入简历');
+  if(!S.dims.length)S.dims=analyze('通用岗位');
+  let r;
+  if(CFG.mode==='online'&&CFG.apiKey){
+    toast('🤖 AI 深度分析中…');
+    try{ r=await aiScore(cv,S.dims); }
+    catch(e){ toast('AI 评分失败，回退关键词：'+e.message); r=doScore(cv,S.dims); }
+  }else{
+    r=doScore(cv,S.dims);
+  }
+  S.lastScore=r;save();
+  renderScore(r);
+  document.getElementById('scoreCard').style.display='';
+  document.getElementById('batchResultCard').style.display='none';
+  document.getElementById('batchList').style.display='none';
+  toast(r.ai?'🤖 AI 语义评分完成':'评分完成');
+}
+
+function doScore(resume,dims){
+  const rl=resume.toLowerCase();
+  const p=profile(resume);
+  const details=dims.map(d=>{
+    let sc=45;const factors=[];
+    const sig=getSignals(d.name);
+    (sig.core||[]).forEach(k=>{const m=rl.match(new RegExp(k,'gi'));if(m){sc+=m.length*6;factors.push('核心信号"'+k+'"×'+m.length);}});
+    (sig.norm||[]).forEach(k=>{const m=rl.match(new RegExp(k,'gi'));if(m){sc+=m.length*3;factors.push('"'+k+'"×'+m.length);}});
+    (sig.tech||[]).forEach(k=>{const m=rl.match(new RegExp(k,'gi'));if(m)sc+=m.length*4;});
+    if(d.name==='专业能力'||d.name==='问题解决'){
+      if(p.ct>=3){sc+=12;factors.push('大厂背景');}
+      else if(p.ct>=2){sc+=9;factors.push('知名企业');}
+      if(p.rl>=4){sc+=9;factors.push('Leader/负责人');}
+      else if(p.rl===3){sc+=6;factors.push('高级级别');}
+      if(p.yr>=3){sc+=Math.min(p.yr-3,7)*1.5;factors.push(p.yr+'年经验');}
+      if(p.ac>=10){sc+=8;factors.push('量化成果显著');}
+      if(p.sk>=5){sc+=Math.min(p.sk-4,6)*2;factors.push(p.sk+'项技能');}
+      if(p.ms>=10){sc+=8;factors.push('精通级熟练度');}
+      else if(p.ms>=5){sc+=4;factors.push('熟练级');}
+    }
+    if(d.name==='领导力'){if(p.rl>=4){sc+=24;factors.push('Leader/负责人');}else if(p.rl>=3){sc+=12;factors.push('高级/带人');}if(p.ct>=3)sc+=9;}
+    if(d.name==='学习能力'){if(p.ee){sc+=8;factors.push('985/211');}if(p.el>=3){sc+=10;factors.push(['','大专','本科','硕士','博士'][p.el]+'学历');}else if(p.el===2){sc+=4;}}
+    if(d.name==='沟通表达'||d.name==='团队协作'){if(p.rl>=3)sc+=6;if(rl.includes('团队'))sc+=4;}
+    if(rl.length<100)sc-=10;else if(rl.length>800)sc+=4;
+    sc=Math.round(Math.max(28,Math.min(98,sc)));
+    return{name:d.name,score:sc,factors:factors.slice(0,3)};
+  });
+  const totalW=dims.reduce((s,d)=>s+(d.weight||20),0)||1;
+  const total=Math.round(details.reduce((s,d,i)=>s+d.score*(dims[i].weight||20),0)/totalW);
+  return{total,details,profile:p};
+}
+
+function profile(resume){
+  const rl=resume.toLowerCase();
+  let el=0,ee=0;
+  if(/博士|ph\.?d/i.test(resume))el=4;else if(/硕士|master/i.test(resume))el=3;else if(/本科|学士|bachelor/i.test(resume))el=2;else if(/大专|专科/i.test(resume))el=1;
+  if(/985|211|双一流|清华|北大|浙大|复旦|上海交大|南大|中科大|哈工大/i.test(rl))ee=1;
+  let ct=0;
+  if(/字节|阿里|腾讯|百度|美团|拼多多|滴滴|京东|华为|快手|网易|微软|谷歌|amazon|apple|meta/i.test(rl))ct=3;
+  else if(/新浪|搜狐|携程|360|b站|bilibili|知乎|商汤|大疆|蔚来|理想|小鹏/i.test(rl))ct=2;
+  else if(/知名|上市|独角兽|行业龙头/i.test(rl))ct=1;
+  let yr=0;
+  const tm=resume.match(/(\d{4})[.\-/年]+.*?[-–—至到]+.*?(\d{4}|至今|现在)/g);
+  if(tm){tm.forEach(t=>{const n=t.match(/\d{4}/g);if(n&&n.length>=1){const s=parseInt(n[0]);const e=n[1]?parseInt(n[1]):new Date().getFullYear();if(s>=2000&&e>=s)yr+=e-s;}});}
+  if(!yr){const m=resume.match(/(\d+)\s*年[^龄纪]/);if(m)yr=parseInt(m[1]);}
+  yr=Math.min(yr,25);
+  let rlVal=0;
+  if(/总监|vp|副总裁|cto|首席|director/i.test(rl))rlVal=4;
+  else if(/负责人|leader|主管|经理|manager|组长|架构师/i.test(rl))rlVal=4;
+  else if(/高级|资深|senior|staff/i.test(rl))rlVal=3;
+  else if(/中级|工程师|developer|engineer/i.test(rl)&&yr>=3)rlVal=2;
+  else if(/初级|junior|实习|intern/i.test(rl))rlVal=1;
+  else if(yr>=5)rlVal=3;else if(yr>=2)rlVal=2;
+  let ac=0;
+  [/提升|降低|增长|减少.*?(\d+)%/g,/日\s*(pv|uv|gmv).*?(\d+[万亿])/g,/负责.*核心|主导|从0.*到1|重构/g,/获.*奖|专利|论文/g].forEach(pat=>{const m=resume.match(pat);if(m)ac+=m.length*5;});
+  ac=Math.min(ac,30);
+  let sk=0;
+  [/react|vue|angular/gi,/typescript|javascript|es6/gi,/node\.?js|express|koa|nestjs/gi,/python|java|go|rust|c\+\+/gi,/mysql|postgresql|mongodb|redis/gi,/docker|kubernetes|k8s|jenkins/gi].forEach(pat=>{const m=rl.match(pat);if(m)sk+=m.length;});
+  let ms=0;
+  if(/\b(精通|深入|core|底层|源码)\b/gi.test(rl))ms+=10;
+  if(/\b(熟悉|熟练|掌握|proficient)\b/gi.test(rl))ms+=5;
+  return{el,ee,ct,yr,rl:rlVal,ac,sk,ms};
+}
+
+function getSignals(dim){
+  const m={
+    '专业能力':{core:['精通','深入','负责','架构','设计','系统','重构'],norm:['开发','编程','项目','工程师','算法','优化','方案'],tech:['react','vue','node','python','java','go','typescript','webpack','vite','数据库','linux','docker','k8s','微服务','性能优化']},
+    '沟通表达':{core:['主持','演讲','跨部门','对外','客户沟通'],norm:['沟通','讲解','汇报','文档','交流','ppt','分享','培训','会议']},
+    '团队协作':{core:['带领团队','组建团队','协调','推动','对齐'],norm:['团队','协作','合作','跨部门','共同','协助']},
+    '学习能力':{core:['自学','主动学习','从零','快速掌握','开源项目','贡献','从0到1'],norm:['学习','研究','新技术','持续','成长','阅读','博客','github']},
+    '问题解决':{core:['排查','定位','根因','复盘','应急','攻克'],norm:['解决','优化','挑战','压力','紧急','debug','修复']}
+  };
+  return m[dim]||{core:[],norm:[],tech:[]};
+}
+
+function renderScore(r){
+  const p=r.profile;
+  const tags=[];
+  if(p.el>=2)tags.push({c:'tag-blue',t:`🎓 ${['','大专','本科','硕士','博士'][p.el]}`+(p.ee?' (985/211)':'')});
+  if(p.ct>=2)tags.push({c:'tag-green',t:`🏢 ${['','','中厂/独角兽','大厂'][p.ct]}`});
+  if(p.yr>=1)tags.push({c:'tag-blue',t:`⏳ ${p.yr}年经验`});
+  if(p.rl>=3)tags.push({c:'tag-green',t:`👤 ${['','','','高级','Leader'][p.rl]}`});
+  if(p.ac>=10)tags.push({c:'tag-amber',t:`🏆 量化成果显著`});
+  if(p.sk>=5)tags.push({c:'tag-blue',t:`🛠 ${p.sk}项技能`});
+
+  const colors=['#6366f1','#059669','#d97706','#dc2626','#2563eb','#7c3aed','#0891b2','#ea580c'];
+  const alreadyInCompare=r._id && S.candidates.some(c=>c._id===r._id);
+  document.getElementById('scoreContent').innerHTML=`
+    <div class="score-hero">
+      <div><div class="big-num">${r.total}</div><div class="big-meta">综合匹配度 · 满分100${r.ai?' · 🤖 AI 语义':''}</div></div>
+      <div style="flex:1"><div class="profile-row">${tags.map(t=>`<span class="tag ${t.c}">${t.t}</span>`).join('')}${r.ai?'<span class="tag tag-green">🤖 AI 语义分析</span>':''}</div></div>
+    </div>
+    ${r.summary?`<div style="margin-top:14px;padding:12px 16px;background:#f8fafc;border-radius:10px;font-size:13.5px;color:#475569;line-height:1.7;">💡 <strong>AI 综合评价：</strong>${String(r.summary).replace(/</g,'&lt;')}</div>`:''}
+    <div style="margin-top:8px;">
+      ${r.details.map((d,i)=>`
+        <div class="score-row">
+          <div class="s-name">${d.name}</div>
+          <div class="s-track"><div class="s-fill" style="width:${d.score}%;background:${colors[i%colors.length]}"></div></div>
+          <div class="s-num" style="color:${colors[i%colors.length]}">${d.score}</div>
+          <div class="s-reason" title="${(d.factors||[]).join(' · ')||''}">${(d.factors||[]).slice(0,3).join(' · ')||'—'}</div>
+        </div>`).join('')}
+    </div>
+    <div style="margin-top:18px;display:flex;gap:10px;">
+      <button class="btn btn-outline btn-sm" onclick="switchTab(2)">继续填写面试记录 →</button>
+      ${alreadyInCompare?'<button class="btn btn-soft btn-sm" disabled style="opacity:.6;cursor:not-allowed;">✓ 已在对比列表</button>':'<button class="btn btn-soft btn-sm" onclick="addScoreToCompare()">➕ 加入对比</button>'}
+    </div>`;
+}
+
+function addScoreToCompare(){
+  if(!S.lastScore)return toast('请先评分');
+  const n=prompt('候选人姓名：','候选人'+(S.candidates.length+1));
+  if(!n)return;
+  S.candidates.push({_id:uid(),name:n,total:S.lastScore.total,details:S.lastScore.details,date:new Date().toLocaleDateString()});
+  save();renderCompare();toast('已加入对比列表');
+}
+
+/* ─── 批量评分：逐份独立评分 + 汇总展示 ─── */
+async function batchScoreAll(){
+  if(!batchFiles.length)return toast('请先上传简历');
+  if(!S.dims.length)S.dims=analyze('通用岗位');
+  const online=(CFG.mode==='online'&&CFG.apiKey);
+
+  const allResults=[];
+  for(let i=0;i<batchFiles.length;i++){
+    const bf=batchFiles[i];
+    let r;
+    if(online){
+      toast(`🤖 AI 评分中 (${i+1}/${batchFiles.length})：${bf.name}`);
+      try{ r=await aiScore(bf.text,S.dims); }
+      catch(e){ console.warn('AI 批量评分失败，回退关键词：',e); r=doScore(bf.text,S.dims); }
+    }else{
+      r=doScore(bf.text,S.dims);
+    }
+    const name=bf.name.replace(/\.(docx|doc|txt|md|pdf)$/i,'').replace(/[_-]/g,' ').replace(/简历|resume|cv/gi,'').trim()||('候选人'+(S.candidates.length+1));
+    const candidate={_id:uid(),name,total:r.total,details:r.details,profile:r.profile,summary:r.summary||'',ai:!!r.ai,date:new Date().toLocaleDateString()};
+    allResults.push(candidate);
+    S.candidates.push(candidate);
+  }
+  batchScores=allResults;
+  save();renderCompare();
+
+  // 更新简历列表卡片：每张显示得分
+  renderBatchListScored(allResults);
+
+  // 渲染批量评分汇总表
+  const sorted=[...allResults].sort((a,b)=>b.total-a.total);
+  document.getElementById('batchResultCard').style.display='';
+  document.getElementById('batchResultCard').innerHTML=`
+    <div class="card" style="margin-top:10px;">
+      <div class="card-title">📊 批量评分结果 · 共 ${allResults.length} 人</div>
+      <div style="overflow-x:auto;">
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <thead><tr style="background:#f1f5f9;">
+            <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);">排名</th>
+            <th style="padding:8px 10px;text-align:left;border-bottom:2px solid var(--border);">候选人</th>
+            <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">综合分</th>
+            ${S.dims.map(d=>`<th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">${d.name}</th>`).join('')}
+            <th style="padding:8px 10px;text-align:center;border-bottom:2px solid var(--border);">建议</th>
+          </tr></thead>
+          <tbody>
+            ${sorted.map((c,i)=>{
+              const rec=c.total>=85?'强烈推荐':c.total>=70?'推荐录用':c.total>=55?'考虑备选':'不推荐';
+              const rc=c.total>=85?'#059669':c.total>=70?'#6366f1':c.total>=55?'#d97706':'#dc2626';
+              return`<tr style="${i===0?'background:#f0fdf4;font-weight:700;':''}">
+                <td style="padding:6px 10px;border-bottom:1px solid var(--border);">${i===0?'🥇':i===1?'🥈':i===2?'🥉':(i+1)}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid var(--border);">${c.name}</td>
+                <td style="padding:6px 10px;border-bottom:1px solid var(--border);text-align:center;color:${rc};font-weight:700;font-size:16px;">${c.total}</td>
+                ${c.details.map(d=>`<td style="padding:6px 10px;border-bottom:1px solid var(--border);text-align:center;">${d.score}</td>`).join('')}
+                <td style="padding:6px 10px;border-bottom:1px solid var(--border);text-align:center;color:${rc};font-weight:600;">${rec}</td>
+              </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top:14px;display:flex;gap:10px;">
+        <button class="btn btn-primary btn-sm" onclick="switchTab(3)">📊 查看详细对比 →</button>
+        <button class="btn btn-soft btn-sm" onclick="exportCSV()">📥 导出 CSV</button>
+      </div>
+    </div>`;
+
+  // 隐藏单人评分卡片
+  document.getElementById('scoreCard').style.display='none';
+  toast(`✅ ${allResults.length} 份简历已独立评分${online?'（AI 语义）':''}，排名已生成`);
+}
+
+/* 更新简历列表卡片：已评分后显示得分 */
+function renderBatchListScored(results){
+  const box=document.getElementById('batchList');
+  const colorsMap={'强烈推荐':'#059669','推荐录用':'#6366f1','考虑备选':'#d97706','不推荐':'#dc2626'};
+  box.innerHTML=results.map((c,i)=>{
+    const rec=c.total>=85?'强烈推荐':c.total>=70?'推荐录用':c.total>=55?'考虑备选':'不推荐';
+    const rc=colorsMap[rec]||'#6366f1';
+    return`
+    <div class="card" style="margin-bottom:10px;padding:14px 18px;cursor:pointer;transition:all .2s;" 
+         onclick="viewBatchItem(${i})" 
+         onmouseover="this.style.borderColor='var(--brand)'" 
+         onmouseout="this.style.borderColor='var(--border)'">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div style="width:36px;height:36px;border-radius:50%;background:var(--brand-soft);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--brand);font-weight:700;">${i+1}</div>
+        <div style="flex:1;">
+          <div style="font-weight:700;font-size:14px;color:var(--text);">${c.name}</div>
+          <div style="font-size:12px;color:var(--muted);margin-top:2px;">点击查看简历原文</div>
+        </div>
+        <div style="font-size:22px;font-weight:800;color:${rc};">${c.total}</div>
+        <div style="font-size:12px;color:${rc};font-weight:600;">${rec}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* 导出 CSV */
+function exportCSV(){
+  if(!S.candidates.length)return toast('暂无候选人数据');
+  const header=['排名','姓名','综合分',...S.dims.map(d=>d.name),'建议'];
+  const sorted=[...S.candidates].sort((a,b)=>b.total-a.total);
+  const rows=sorted.map((c,i)=>{
+    const rec=c.total>=85?'强烈推荐':c.total>=70?'推荐录用':c.total>=55?'考虑备选':'不推荐';
+    return[i+1,c.name,c.total,...c.details.map(d=>d.score),rec];
+  });
+  const csv='\ufeff'+[header,...rows].map(r=>r.join(',')).join('\n');
+  const b=new Blob([csv],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='候选人评分_'+new Date().toLocaleDateString()+'.csv';a.click();
+  toast('CSV 已导出');
+}
+
+/* =============================================
+   TAB 2: INTERVIEW & REPORT
+============================================= */
+function autoFillScores(){
+  if(S.lastScore){renderIvScores(S.lastScore.details);toast('已自动填充简历评分');}
+  else{toast('请先在简历评分页面完成评分');}
+}
+function renderIvScores(preset){
+  const dims=S.dims.length?S.dims:analyze('通用岗位');
+  if(!S.dims.length)S.dims=dims;
+  const el=document.getElementById('ivScores');
+  el.innerHTML=dims.map(d=>{
+    const prev=preset?preset.find(x=>x.name===d.name):null;
+    const v=prev?prev.score:70;
+    const dn=d.name.replace(/"/g,'&quot;');
+    return`<div style="margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:600;color:#64748b;display:block;margin-bottom:4px;">${d.name.replace(/</g,'&lt;')}</span>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <input type="range" min="0" max="100" value="${v}" style="flex:1;accent-color:var(--brand)" oninput="this.nextElementSibling.value=this.value">
+        <input type="number" min="0" max="100" value="${v}" data-dim="${dn}" style="width:56px;text-align:center;font-weight:700;border:1px solid var(--border);border-radius:6px;padding:4px;" oninput="this.previousElementSibling.value=this.value">
+      </div></div>`;
+  }).join('');
+}
+
+function genReport(){
+  const name=document.getElementById('ivName').value.trim()||'未命名候选人';
+  const date=document.getElementById('ivDate').value||new Date().toLocaleDateString();
+  const notes=document.getElementById('ivNotes').value.trim();
+  const inputs=document.querySelectorAll('#ivScores input[type="number"]');
+  let details=[];
+  if(inputs.length){inputs.forEach(inp=>{details.push({name:inp.getAttribute('data-dim'),score:parseInt(inp.value)||70});});}
+  else if(S.lastScore){details=S.lastScore.details;}
+  else{details=S.dims.map(d=>({name:d.name,score:70}));}
+  const total=Math.round(details.reduce((s,d)=>s+d.score,0)/details.length);
+  const sorted=[...details].sort((a,b)=>b.score-a.score);
+  const str=sorted.filter(s=>s.score>=76);
+  const weak=sorted.filter(s=>s.score<62);
+  const c=total>=85?'#059669':total>=70?'#6366f1':total>=55?'#d97706':'#dc2626';
+  const rec=total>=85?'强烈推荐录用':total>=70?'推荐录用':total>=55?'可考虑备选':'不推荐';
+
+  S.lastReport={name,date,details,total,notes,recommend:rec};save();
+
+  document.getElementById('reportBody').innerHTML=`
+    <div style="display:flex;align-items:center;gap:24px;padding:20px 24px;background:#f8fafc;border-radius:12px;margin-bottom:20px;">
+      <div><div style="font-size:18px;font-weight:700;">${name}</div><div style="font-size:12px;color:var(--muted);">${date}</div></div>
+      <div style="margin-left:auto;text-align:center;"><div style="font-size:42px;font-weight:800;color:${c}">${total}</div><div style="font-size:12px;color:var(--muted);">综合得分</div></div>
+    </div>
+    <div class="report-block"><h4>📊 各维度得分</h4>
+      ${details.map(d=>{const co=d.score>=80?'#059669':d.score>=60?'#6366f1':'#d97706';return`<div class="score-row"><div class="s-name">${d.name}</div><div class="s-track"><div class="s-fill" style="width:${d.score}%;background:${co}"></div></div><div class="s-num" style="color:${co}">${d.score}</div></div>`;}).join('')}
+    </div>
+    <div class="report-block"><h4>✅ 优势分析</h4>${str.length?`<ul>${str.map(s=>`<li><strong>${s.name}</strong>表现突出（${s.score}分）</li>`).join('')}</ul>`:'<p style="color:var(--muted)">各维度表现均衡</p>'}</div>
+    <div class="report-block"><h4>⚠️ 需要关注</h4>${weak.length?`<ul>${weak.map(s=>`<li><strong>${s.name}</strong>有提升空间（${s.score}分）</li>`).join('')}</ul>`:'<p style="color:var(--muted)">各维度均达标</p>'}</div>
+    <div class="report-block"><h4>📝 面试评语</h4><p style="line-height:1.8;color:#475569;">${notes?notes.replace(/\n/g,'<br>'):'<span style="color:var(--muted)">暂无评语</span>'}</p></div>
+    <div class="report-block"><h4>🎯 录用建议</h4><p style="font-size:18px;font-weight:700;color:${c}">${rec}</p></div>`;
+  document.getElementById('reportCard').style.display='';
+  toast('报告已生成');
+}
+
+function addReportToCompare(){
+  if(!S.lastReport)return toast('请先生成报告');
+  const r=S.lastReport;
+  S.candidates.push({_id:uid(),name:r.name,total:r.total,details:r.details,date:r.date});
+  save();renderCompare();toast('已加入对比');
+}
+
+/* =============================================
+   TAB 3: COMPARE
+============================================= */
+function renderCompare(){
+  const tbody=document.getElementById('cvTable');
+  document.getElementById('cvCount').textContent=S.candidates.length;
+  if(!S.candidates.length){tbody.innerHTML='<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--muted);">暂未添加候选人</td></tr>';return;}
+  const sorted=[...S.candidates].sort((a,b)=>b.total-a.total);
+  tbody.innerHTML=sorted.map((c,i)=>{
+    const cl=c.total>=85?'#059669':c.total>=70?'#6366f1':c.total>=55?'#d97706':'#dc2626';
+    const rec=c.total>=85?'rec-strong':c.total>=70?'rec-rec':c.total>=55?'rec-backup':'rec-no';
+    const rl=c.total>=85?'强烈推荐':c.total>=70?'推荐':c.total>=55?'备选':'不推荐';
+    const dots=['#f59e0b','#9ca3af','#b45309'];
+    return`<tr>
+      <td><span class="rank-dot" style="background:${i<3?dots[i]:'#e2e8f0'}"></span> ${i+1}</td>
+      <td class="cand-cell">${c.name}</td>
+      <td><span class="score-big" style="color:${cl}">${c.total}</span></td>
+      <td style="display:flex;gap:4px;flex-wrap:wrap;">${(c.details||[]).map(d=>`<span class="tag tag-blue" style="font-size:11px;">${d.name}:${d.score}</span>`).join('')}</td>
+      <td><span class="rec-badge ${rec}">${rl}</span></td>
+      <td><button class="btn btn-ghost btn-sm" onclick="removeCandidate('${c._id}')">移除</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function removeCandidate(id){S.candidates=S.candidates.filter(c=>c._id!==id);save();renderCompare();toast('已移除');}
+
+/* =============================================
+   DOCX PARSER
+============================================= */
+async function parseDocx(file){
+  // 方案 1：使用 mammoth.js（专业级 docx 解析库，处理所有 docx 变体）
+  if(typeof mammoth!=='undefined'){
+    try{
+      const buf=await file.arrayBuffer();
+      const result=await mammoth.extractRawText({arrayBuffer:buf});
+      if(result.value&&result.value.trim())return result.value.trim();
+    }catch(e){console.warn('mammoth 解析失败，尝试备用方案',e);}
+  }
+
+  // 方案 2：备用——修正版手写 ZIP 解析器
+  const buf=await file.arrayBuffer();
+  const u8=new Uint8Array(buf);
+  const z={};
+  for(let pos=0;pos<u8.length-30;){
+    if(u8[pos]!==0x50||u8[pos+1]!==0x4b||u8[pos+2]!==0x03||u8[pos+3]!==0x04){pos++;continue;}
+    const cm=u8[pos+8]|(u8[pos+9]<<8);
+    const cs=u8[pos+18]|(u8[pos+19]<<8)|(u8[pos+20]<<16)|(u8[pos+21]<<24);
+    const nl=u8[pos+26]|(u8[pos+27]<<8);
+    const xl=u8[pos+28]|(u8[pos+29]<<8);
+    if(nl===0||nl>256||pos+30+nl+xl+cs>u8.length){pos++;continue;}
+    const nm=new TextDecoder().decode(u8.slice(pos+30,pos+30+nl));
+    const ds=pos+30+nl+xl;
+    let d=u8.slice(ds,ds+cs);
+
+    // deflate 解压——修复解构 bug：{value,done} 而非 {o}
+    if(cm===8&&typeof DecompressionStream!=='undefined'&&cs>0){
+      try{
+        const stream=new DecompressionStream('deflate-raw');
+        const writer=stream.writable.getWriter();
+        writer.write(d);writer.close();
+        const reader=stream.readable.getReader();
+        const chunks=[];
+        while(true){
+          const{value:chunk,done:finished}=await reader.read();
+          if(finished)break;
+          if(chunk)chunks.push(chunk);
+        }
+        const totalLen=chunks.reduce((s,c)=>s+c.length,0);
+        const flat=new Uint8Array(totalLen);
+        let offset=0;
+        for(const c of chunks){flat.set(c,offset);offset+=c.length;}
+        d=flat;
+      }catch(e){console.warn('deflate 解压失败:',nm,e);}
+    }
+    z[nm]=d;
+    pos=ds+cs;
+    if(nm==='word/document.xml')break;
+  }
+
+  const xmlData=z['word/document.xml'];
+  if(!xmlData)throw new Error('无法解析此文件，请确认是标准 .docx 格式');
+  let xmlStr=new TextDecoder().decode(xmlData);
+  xmlStr=xmlStr.replace(/<w:br\s*\/>/gi,'\n').replace(/<w:p[^>]*>/gi,'\n').replace(/<\/w:p>/gi,'');
+  const parts=[];
+  const re=/<w:t[^>]*>([^<]*)<\/w:t>/gi;
+  let m;
+  while((m=re.exec(xmlStr))!==null){if(m[1])parts.push(m[1]);}
+  const text=parts.join('').replace(/\n{3,}/g,'\n\n').replace(/  +/g,' ').trim();
+  if(!text)throw new Error('文档内容为空或格式不兼容');
+  return text;
+}
+
+/* =============================================
+   AI 语义调用层（OpenAI 兼容 · SSE 流式）
+   - 协议已确认为 SSE 流式（model: qwen3.6:128k），delta 含 content 与 reasoning
+   - 直连优先；直连出现网络/CORS 错误且未开代理时，自动回退本地代理
+   - 内置重试（上游网关偶发 500，重试可恢复）；任何失败抛出错误，由调用方降级到关键词引擎
+============================================= */
+async function callAI(system,user,opts={}){
+  if((CFG.mode!=='online'&&!opts.force)||!CFG.apiKey) return null;
+  // 通道：勾选代理则只用代理；否则先直连，网络/CORS 失败再回退本地代理
+  const channels = CFG.useProxy ? [{viaProxy:true}] : [{viaProxy:false},{viaProxy:true}];
+  let lastErr;
+  for(const ch of channels){
+    try{ return await callAICore(system,user,{...opts,...ch}); }
+    catch(e){
+      lastErr=e;
+      const net=/Failed to fetch|NetworkError|load failed|CORS|aborted|terminated|TypeError/i.test(e.message||'');
+      if(ch.viaProxy||!net) break;          // 已试过代理，或非网络错误 → 不再重试
+      toast('直连失败，自动尝试本地代理…');
+    }
+  }
+  throw lastErr;
+}
+
+async function callAICore(system,user,opts){
+  const viaProxy=!!opts.viaProxy;
+  const url=viaProxy?'http://localhost:8787/proxy':CFG.baseURL;
+  const payload={model:CFG.model,stream:true,temperature:opts.temperature??0.3,
+    messages:[{role:'system',content:system},{role:'user',content:user}]};
+  const headers={'Content-Type':'application/json'};
+  let sendBody;
+  if(viaProxy){ sendBody=JSON.stringify({url:CFG.baseURL,key:CFG.apiKey,payload}); }
+  else{ headers['Authorization']='Bearer '+CFG.apiKey; sendBody=JSON.stringify(payload); }
+
+  let lastErr;
+  const tries=opts.force?2:3;
+  for(let attempt=0;attempt<tries;attempt++){
+    try{
+      const ctrl=new AbortController();
+      const to=setTimeout(()=>ctrl.abort(),opts.timeout||90000);
+      const resp=await fetch(url,{method:'POST',headers,body:sendBody,signal:ctrl.signal});
+      clearTimeout(to);
+      if(!resp.ok){
+        const t=await resp.text().catch(()=> '');
+        throw new Error('API 错误 '+resp.status+'：'+(t||'').slice(0,160));
+      }
+      if(!resp.body) throw new Error('响应无流式数据');
+      const text=await readSSE(resp,opts);
+      if(!text||!text.trim()) throw new Error('模型返回为空');
+      return opts.json?extractJSON(text):text;
+    }catch(e){
+      lastErr=e;
+      if(attempt<tries-1) await new Promise(r=>setTimeout(r,900*(attempt+1)));
+    }
+  }
+  throw new Error('AI 调用失败（已重试'+tries+'次）：'+((lastErr&&lastErr.message)||lastErr));
+}
+
+/* 解析 SSE 流：逐行读取 data: {...}，累加 content（优先）/ reasoning（兜底） */
+async function readSSE(resp,opts){
+  const reader=resp.body.getReader();
+  const dec=new TextDecoder();
+  let buf='', content='', reasoning='';
+  while(true){
+    const {value,done}=await reader.read();
+    if(done) break;
+    buf+=dec.decode(value,{stream:true});
+    let nl;
+    while((nl=buf.indexOf('\n'))>=0){
+      const line=buf.slice(0,nl).trim(); buf=buf.slice(nl+1);
+      if(!line||!line.startsWith('data:')) continue;
+      const data=line.slice(5).trim();
+      if(data==='[DONE]') continue;
+      try{
+        const j=JSON.parse(data);
+        const d=j.choices&&j.choices[0]&&j.choices[0].delta;
+        if(d){ if(d.content)content+=d.content; else if(d.reasoning)reasoning+=d.reasoning; }
+        if(opts.onToken) opts.onToken(content||reasoning);
+      }catch(_){ /* 心跳/注释行忽略 */ }
+    }
+  }
+  return content.trim()||reasoning.trim();
+}
+
+function extractJSON(text){
+  if(text==null) throw new Error('模型返回为空');
+  let t=String(text).trim();
+  // 去掉可能的思考过程包裹（部分模型会输出 <think>...</think>）
+  const tk=t.match(/<think>([\s\S]*?)<\/think>/i); if(tk) t=t.replace(tk[0],' ');
+  t=t.replace(/^```(?:json)?\s*/i,'').replace(/\s*```$/i,'');
+  try{return JSON.parse(t);}catch(e){}
+  const s=t.indexOf('{'),e=t.lastIndexOf('}');
+  if(s>=0&&e>s){try{return JSON.parse(t.slice(s,e+1));}catch(e2){}}
+  const s2=t.indexOf('['),e2=t.lastIndexOf(']');
+  if(s2>=0&&e2>s2){try{return JSON.parse(t.slice(s2,e2+1));}catch(e3){}}
+  throw new Error('无法解析模型返回的 JSON：'+t.slice(0,200));
+}
+
+/* ── AI：JD → 评估维度 ── */
+async function aiGenModel(jd){
+  const sys='你是资深招聘专家与 HRBP，擅长从职位描述中提炼结构化、可量化的评估维度。';
+  const usr=`请根据以下职位描述，提炼 4-6 个核心评估维度（如专业能力、沟通表达、团队协作、学习能力、问题解决、领导力等），并为每个维度给出权重（所有维度权重之和须=100）和 3 道针对性面试问题。\n\n严禁输出任何思考过程、解释或代码块标注，只输出一个 JSON 对象（不要任何说明文字），格式：\n{"dims":[{"name":"维度名","weight":权重数字,"questions":["问题1","问题2","问题3"]}]}\n\n职位描述：\n${jd}`;
+  const obj=await callAI(sys,usr,{json:true,temperature:0.3});
+  if(!obj||!Array.isArray(obj.dims)||!obj.dims.length) throw new Error('模型未返回有效维度');
+  const sum=obj.dims.reduce((s,d)=>s+(+d.weight||0),0)||1;
+  return obj.dims.slice(0,6).map(d=>({
+    name:String(d.name||'维度').trim()||'维度',
+    weight:Math.round((+d.weight||20)/sum*100)||20,
+    questions:Array.isArray(d.questions)?d.questions.slice(0,5).map(String):['请描述一段相关经历？']
+  }));
+}
+
+/* ── AI：简历 → 语义评分 ── */
+async function aiScore(resume,dims){
+  const dimDesc=dims.map(d=>`- ${d.name}（权重 ${d.weight}）`).join('\n');
+  const sys='你是资深技术面试官与人才评估专家，擅长基于简历中的真实事实进行客观、可解释的人岗匹配评分，绝不臆造。';
+  const usr=`评估维度与权重：\n${dimDesc}\n\n候选简历原文：\n${resume}\n\n请对每个维度打 0-100 分（必须基于简历中的真实事实，不要凭空给高分），并给出 2-3 条评分依据 factors（引用简历具体内容）。同时给出综合得分 total（按权重加权，0-100）与一句话 summary。\n严禁输出思考过程、解释或代码块标注，只输出一个 JSON 对象（不要任何说明文字），格式：\n{"total":数字,"summary":"一句话综合评价","details":[{"name":"维度名","score":数字,"factors":["依据1","依据2"]}]}`;
+  const obj=await callAI(sys,usr,{json:true,temperature:0.2});
+  if(!obj||!Array.isArray(obj.details)) throw new Error('模型未返回有效评分');
+  const local=doScore(resume,dims);
+  const byName={}; local.details.forEach(d=>{byName[d.name]=d;});
+  const details=dims.map(d=>{
+    const a=obj.details.find(x=>x.name===d.name)||obj.details.find(x=>x.name&&d.name&&String(x.name).includes(d.name));
+    if(a&&typeof a.score==='number') return {name:d.name,score:Math.max(0,Math.min(100,Math.round(a.score))),factors:Array.isArray(a.factors)?a.factors.slice(0,3).map(String):[],summary:a.summary};
+    return byName[d.name]||{name:d.name,score:60,factors:['AI 未覆盖此维度，已用关键词估算'],summary:''};
+  });
+  const totalW=dims.reduce((s,d)=>s+(d.weight||20),0)||1;
+  const total=Math.round(details.reduce((s,d,i)=>s+d.score*(dims[i].weight||20),0)/totalW);
+  return {total,details,profile:local.profile,summary:obj.summary||'',ai:true};
+}
+
+/* ── 设置弹窗 ── */
+function openSettings(){
+  document.getElementById('cfgBase').value=CFG.baseURL||'';
+  document.getElementById('cfgKey').value=CFG.apiKey||'';
+  document.getElementById('cfgModel').value=CFG.model||'qwen3.6:128k';
+  document.getElementById('cfgProxy').checked=!!CFG.useProxy;
+  document.querySelectorAll('input[name="mode"]').forEach(r=>r.checked=(r.value===CFG.mode));
+  document.getElementById('settingsMask').style.display='flex';
+}
+function closeSettings(){document.getElementById('settingsMask').style.display='none';}
+function setMode(m){CFG.mode=m;saveCfg();updateModeBadge();}
+function saveSettings(){
+  CFG.baseURL=document.getElementById('cfgBase').value.trim();
+  CFG.apiKey=document.getElementById('cfgKey').value.trim();
+  CFG.model=document.getElementById('cfgModel').value.trim()||'qwen3.6:128k';
+  CFG.useProxy=document.getElementById('cfgProxy').checked;
+  saveCfg();updateModeBadge();
+  toast(CFG.mode==='online'?'已保存 · 在线 AI 模式':'已保存 · 离线模式');
+  closeSettings();
+}
+function updateModeBadge(){
+  const b=document.getElementById('modeBtn');
+  if(!b)return;
+  if(CFG.mode==='online'&&CFG.apiKey){b.textContent='⚙ AI：在线';b.style.color='var(--success)';b.style.borderColor='var(--success)';}
+  else{b.textContent='⚙ AI：离线';b.style.color='';b.style.borderColor='';}
+}
+async function testConnection(){
+  if(!CFG.apiKey){return toast('请先填写 API Key');}
+  if(!CFG.baseURL){return toast('请先填写 Chat 接口地址');}
+  toast('正在测试连接…');
+  try{
+    const r=await callAI('你是连接测试助手，如果用户说 ping 就只回复 PONG 两个字母。','ping',{json:false,timeout:20000,force:true});
+    toast('✅ 连接成功：'+(typeof r==='string'?r.trim().slice(0,30):'OK'));
+  }catch(e){ toast('❌ 连接失败：'+e.message); }
+}
+
+/* =============================================
+   GLOBAL
+============================================= */
+async function demoFlow(){
+  loadDemoJD();
+  await genModel();
+  switchTab(1);
+  loadDemoCV();
+  scoreResume();
+  toast('已载入完整演示数据，可切换各 Tab 查看效果');
+}
+
+function exportAll(){
+  let t='AI 面试评估助手 综合报告\n'+new Date().toLocaleString()+'\n\n';
+  if(S.jd)t+='【JD】\n'+S.jd+'\n\n';
+  if(S.dims.length)t+='【评估维度】\n'+S.dims.map((d,i)=>`  ${i+1}. ${d.name}`).join('\n')+'\n\n';
+  if(S.candidates.length)t+='【候选人】\n'+S.candidates.map((c,i)=>`  ${i+1}. ${c.name}  ${c.total}分`).join('\n');
+  const b=new Blob(['\ufeff'+t],{type:'text/plain;charset=utf-8'});const a=document.createElement('a');
+  a.href=URL.createObjectURL(b);a.download='面试评估_'+new Date().toLocaleDateString()+'.txt';a.click();
+  toast('已导出');
+}
+function confirmClearAll(){
+  if(!confirm('确定清空所有数据？'))return;
+  Object.assign(S,{jd:'',dims:[],candidates:[],lastScore:null,lastReport:null});
+  localStorage.removeItem('ia_v2');
+  document.getElementById('jdArea').value='';document.getElementById('cvArea').value='';
+  ['modelCard','scoreCard','reportCard'].forEach(id=>document.getElementById(id).style.display='none');
+  renderCompare();toast('已清空');
+}
+
+/* =============================================
+   INIT
+============================================= */
+window.addEventListener('DOMContentLoaded',()=>{
+  load();
+  loadCfg();
+  updateModeBadge();
+  document.getElementById('ivDate').value=new Date().toISOString().split('T')[0];
+  if(S.jd)document.getElementById('jdArea').value=S.jd;
+  if(S.dims.length){renderDims();document.getElementById('modelCard').style.display='';}
+  renderIvScores(S.lastScore?S.lastScore.details:null);
+  renderCompare();
+  ['jdArea','cvArea'].forEach(id=>{
+    const el=document.getElementById(id);
+    el.addEventListener('dragover',e=>{e.preventDefault();el.classList.add('drag-over');});
+    el.addEventListener('dragleave',e=>{el.classList.remove('drag-over');});
+    el.addEventListener('drop',e=>{e.preventDefault();el.classList.remove('drag-over');
+      if(!e.dataTransfer.files.length)return;
+      if(id==='jdArea')uploadJDFile({target:{files:e.dataTransfer.files}});
+      else uploadCvFiles({target:{files:e.dataTransfer.files}});
+    });
+  });
+});
+</script>
+</body>
+</html>
